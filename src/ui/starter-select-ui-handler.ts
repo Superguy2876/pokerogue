@@ -86,7 +86,7 @@ function getValueReductionCandyCounts(baseValue: integer): [integer, integer] {
   }
 }
 
-const gens = [ 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX' ];
+const gens = [ 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'RND' ];
 
 export default class StarterSelectUiHandler extends MessageUiHandler {
   private starterSelectContainer: Phaser.GameObjects.Container;
@@ -364,6 +364,10 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
       }
     }
 
+    this.addToGenContainer(this.getRandStarterSpecies(9, true), 10);
+    
+
+
     this.starterIcons = new Array(6).fill(null).map((_, i) => {
       const icon = this.scene.add.sprite(113, 63 + 13 * i, 'pokemon_icons_0');
       icon.setScale(0.5);
@@ -611,6 +615,45 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     this.starterSelectContainer.add(this.statsContainer);
 
     this.updateInstructions();
+  }
+
+  addToGenContainer(species: Array<any>, gen: integer) {
+    // Clear container first
+    console.log('running addToGenContainer')
+    this.starterSelectGenIconContainers[gen - 1].removeAll(true);
+
+
+    for (let [index, speciesId] of species.entries()) {
+      
+      const species = getPokemonSpecies(speciesId);
+      const defaultDexAttr = this.scene.gameData.getSpeciesDefaultDexAttr(species, false, true);
+      const defaultProps = this.scene.gameData.getSpeciesDexAttrProps(species, defaultDexAttr);
+      const x = (index % 9) * 18;
+      const y = Math.floor(index / 9) * 18;
+      const icon = this.scene.add.sprite(x - 2, y + 2, species.getIconAtlasKey(defaultProps.formIndex, defaultProps.shiny, defaultProps.variant));
+      icon.setScale(0.5);
+      icon.setOrigin(0, 0);
+      icon.setFrame(species.getIconId(defaultProps.female, defaultProps.formIndex, defaultProps.shiny, defaultProps.variant));
+      this.starterSelectGenIconContainers[gen - 1].add(icon);
+      this.iconAnimHandler.addOrUpdate(icon, PokemonIconAnimMode.NONE);
+    }
+  }
+
+  getRandStarterSpecies(amount: integer, caughtOnly: boolean = true) {
+    const starterSpecies: Species[] = [];
+
+    for (let g = 0; g < this.starterSelectGenIconContainers.length; g++) {
+      for (let species of allSpecies) {
+        if (!speciesStarters.hasOwnProperty(species.speciesId) || species.generation !== g + 1 || !species.isObtainable())
+          continue;
+        starterSpecies.push(species.speciesId);
+      }
+    }
+
+    if (caughtOnly)
+      return Utils.shuffle(starterSpecies.filter(speciesId => this.scene.gameData.dexData[speciesId].caughtAttr), amount);
+    else
+      return Utils.shuffle(starterSpecies, amount);
   }
 
   show(args: any[]): boolean {
@@ -1171,6 +1214,11 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
         this.genScrollCursor++;
         cursor--;
         this.updateGenOptions();
+      }
+
+      if (cursor === 2) {
+        
+        this.addToGenContainer(this.getRandStarterSpecies(9, true), gens.length);
       }
 
       if (genCursorWithScroll !== undefined)
