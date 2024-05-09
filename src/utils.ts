@@ -63,6 +63,20 @@ export function padInt(value: integer, length: integer, padWith?: string): strin
 }
 
 /**
+ * Returns the same array with the elements shuffled
+ * @param array The array to shuffle
+ * @param limit The number of top n elements to return
+ */
+export function shuffle<T>(array: T[], limit: integer = 0): T[] {
+  const shuffled = array.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return limit ? shuffled.slice(0, limit) : shuffled;
+}
+
+/**
 * Returns a random integer between min and min + range
 * @param range The amount of possible numbers
 * @param min The starting number
