@@ -1216,8 +1216,9 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
         this.updateGenOptions();
       }
 
+      // If cursor is at 2, then we know it's on the last option, which will be the "RND" option
+      // If the cursor is on the last option, then we want to add a random starter species to the gen container
       if (cursor === 2) {
-        
         this.addToGenContainer(this.getRandStarterSpecies(9, true), gens.length);
       }
 
